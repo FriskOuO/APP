@@ -6,13 +6,43 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "lint": "expo lint"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-navigation/bottom-tabs": "^7.9.0",
+    "@react-navigation/drawer": "^7.7.10",
+    "@react-navigation/native": "^7.1.26",
+    "@react-navigation/native-stack": "^7.9.0",
+    "@reduxjs/toolkit": "^2.11.2",
+    "@xstate/react": "^6.0.0",
+    "chart.js": "^4.5.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "expo": "~54.0.30",
+    "expo-constants": "~18.0.12",
     "expo-status-bar": "~3.0.9",
+    "express": "^5.2.1",
+    "ip": "^2.0.1",
+    "mqtt": "^5.14.1",
+    "multicast-dns": "^7.2.5",
+    "nodemailer": "^7.0.12",
     "react": "19.1.0",
-    "react-native": "0.81.5"
+    "react-chartjs-2": "^5.3.1",
+    "react-native": "0.81.5",
+    "react-native-gesture-handler": "^2.30.0",
+    "react-native-safe-area-context": "^5.6.2",
+    "react-native-screens": "^4.19.0",
+    "react-redux": "^9.2.0",
+    "redux": "^5.0.1",
+    "xstate": "^5.25.0"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "eslint": "^9.39.2",
+    "eslint-config-expo": "~10.0.0",
+    "jest": "^29.7.0",
+    "jest-expo": "^54.0.16"
+  }
 }
