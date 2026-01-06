@@ -9,6 +9,21 @@ import { setup, assign, fromCallback, fromPromise } from 'xstate';
 const sendEmailActor = fromPromise(async ({ input }) => {
   const { to, subject, text } = input;
   console.log(`Attempting to send email to ${to}...`);
+  
+  // 檢測運行環境
+  const isNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
+  
+  // 對於移動端，模擬發送成功
+  if (isNative) {
+    console.log('📱 Native mode: Simulating email send');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return { 
+      success: true, 
+      messageId: 'native-mock-' + Date.now(),
+      simulated: true 
+    };
+  }
+  
   try {
     const response = await fetch('/api/send-email', {
       method: 'POST',

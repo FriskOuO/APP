@@ -78,7 +78,13 @@ const SceneDisplay = ({ background, character }) => {
   // Handle public assets explicitly
   const style = {};
   if (background === 'teach') {
-    style.backgroundImage = `url(${process.env.PUBLIC_URL}/assets/teach.png)`;
+    // Use absolute path for assets
+    style.backgroundImage = `url(/assets/teach.png)`;
+    style.backgroundSize = 'cover';
+    style.backgroundPosition = 'center';
+    style.backgroundRepeat = 'no-repeat';
+  } else if (background === 'parking-lot') {
+    style.backgroundImage = `url(/assets/parking_lot.png)`;
     style.backgroundSize = 'cover';
     style.backgroundPosition = 'center';
     style.backgroundRepeat = 'no-repeat';

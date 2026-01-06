@@ -1,9 +1,24 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, StatusBar, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, StatusBar, Dimensions, ActivityIndicator } from 'react-native';
 import { useMachine } from '@xstate/react';
 import { visualNovelMachine } from './visualNovelMachine';
 
 import CyberpunkDashboard from './components/CyberpunkDashboardNative';
+
+// --- Loading Component ---
+const LoadingScreen = () => (
+  <SafeAreaView style={styles.container}>
+    <View style={[styles.loadingContainer, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
+      <ActivityIndicator size="large" color="#22d3ee" />
+      <Text style={[styles.loadingText, { marginTop: 20, fontSize: 18, color: '#22d3ee' }]}>
+        🎮 載入中...
+      </Text>
+      <Text style={[styles.loadingHint, { marginTop: 10, fontSize: 14, color: '#64748b' }]}>
+        初始化遊戲系統
+      </Text>
+    </View>
+  </SafeAreaView>
+);
 
 const VirtualMobile = ({ notification, parkedHours }) => (
   notification ? (
@@ -140,6 +155,11 @@ export default function App() {
   const currentState = state.value;
   const context = state.context;
 
+  // 處理加載狀態
+  if (!state || !context || !currentState) {
+    return <LoadingScreen />;
+  }
+
   // IMMEDIATE STATE RESET PATTERN
   if (context.currentText !== prevText) {
     setPrevText(context.currentText);
@@ -259,15 +279,54 @@ export default function App() {
       {/* Main Game Area */}
       <View style={styles.gameArea}>
         <View style={styles.screen}>
-           {/* Background Image Placeholder */}
+           {/* Background Image */}
            <View style={styles.backgroundPlaceholder}>
-              <Text style={styles.bgText}>{context.backgroundImage}</Text>
+              {/* 停車場背景 */}
+              {context.backgroundImage === 'parking-lot' && (
+                <Image 
+                  source={require('../assets/parking_lot.png')}
+                  style={styles.backgroundImage}
+                  resizeMode="cover"
+                />
+              )}
+              {/* 教室背景 */}
+              {context.backgroundImage === 'teach' && (
+                <Image 
+                  source={require('../assets/teach.png')}
+                  style={styles.backgroundImage}
+                  resizeMode="cover"
+                />
+              )}
+              {/* 車內背景（使用car.png） */}
+              {context.backgroundImage === 'car-interior' && (
+                <Image 
+                  source={require('../assets/car.png')}
+                  style={styles.backgroundImage}
+                  resizeMode="cover"
+                />
+              )}
+              {/* 其他場景顯示圖示和名稱 */}
+              {!['parking-lot', 'teach', 'car-interior'].includes(context.backgroundImage) && (
+                <>
+                  <Text style={styles.sceneIcon}>
+                    {context.backgroundImage === 'gate' && '🚧'}
+                    {context.backgroundImage === 'static-noise' && '📺'}
+                    {context.backgroundImage === 'oiia-cat' && '🐱'}
+                    {context.backgroundImage === 'blue-screen' && '💙'}
+                  </Text>
+                  <Text style={styles.sceneName}>{context.backgroundImage}</Text>
+                </>
+              )}
            </View>
            
-           {/* Character Image Placeholder */}
-           <View style={styles.characterPlaceholder}>
-              <Text style={styles.charText}>{context.characterImage}</Text>
-           </View>
+           {/* Character Sprite - Hidden */}
+           {/* <View style={styles.characterPlaceholder}>
+              <Text style={styles.charEmoji}>
+                {context.characterImage === 'narrator' && '🎭'}
+                {context.characterImage === 'driver' && '🚗'}
+                {context.characterImage === 'system' && '🤖'}
+              </Text>
+           </View> */}
 
            {/* QTE Overlay */}
            {currentState === 'qteSequence' && (
@@ -362,19 +421,38 @@ const styles = StyleSheet.create({
   backgroundPlaceholder: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: '#222',
+    backgroundColor: '#1a1a2e',
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  },
+  sceneIcon: {
+    fontSize: 80,
+    marginBottom: 10,
+    opacity: 0.6,
+  },
+  sceneName: {
+    color: '#888',
+    fontSize: 16,
+    opacity: 0.7,
+    fontWeight: 'bold',
   },
   bgText: { color: '#555', fontSize: 20 },
   characterPlaceholder: {
     position: 'absolute',
-    bottom: 0,
-    width: 100,
-    height: 150,
-    backgroundColor: '#444',
-    justifyContent: 'center',
+    bottom: 20,
     alignItems: 'center',
+  },
+  charEmoji: { 
+    fontSize: 60,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 10,
   },
   charText: { color: '#fff' },
   dialogueBox: {

@@ -115,6 +115,9 @@
 
 .scene-teach {
   /* Background handled in JS via inline style to support PUBLIC_URL */
+  background: linear-gradient(to bottom, #4a5568, #2d3748);
+  background-size: cover;
+  background-position: center;
 }
 
 .scene-gate {

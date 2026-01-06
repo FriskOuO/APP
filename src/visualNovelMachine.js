@@ -61,19 +61,57 @@ export const visualNovelMachine = createMachine({
         parkingHours: 0,
         isAutoPilot: false,
         logs: ({ context }) => {
+          const isNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
+          const platformLog = { 
+            type: 'system', 
+            text: isNative ? '📱 Platform: React Native (Mobile)' : '🖥️ Platform: Web Browser', 
+            timestamp: new Date().toISOString() 
+          };
           const initialLog = { type: 'system', text: '🌍 World Init: Meme_Parking_Lot', timestamp: new Date().toISOString() };
           // 如果是二周目，多加一行提示
-          return context.gameCleared 
-            ? [initialLog, { type: 'system', text: '💎 VIP Mode Active: 自動駕駛已解鎖', timestamp: new Date().toISOString() }]
-            : [initialLog];
+          const logs = [platformLog, initialLog];
+          if (context.gameCleared) {
+            logs.push({ type: 'system', text: '💎 VIP Mode Active: 自動駕駛已解鎖', timestamp: new Date().toISOString() });
+          }
+          return logs;
         }
       }),
       invoke: {
         src: fromPromise(async () => {
           try {
             const t0 = Date.now();
-            // 使用相對路徑，透過 package.json 的 proxy 轉發到後端
-            const res = await fetch(`/api/ntp?t0=${t0}`);
+            
+            // 檢測運行環境：React Native vs Web
+            const isNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
+            
+            // 對於移動端，直接跳過NTP同步（使用本地時間）
+            if (isNative) {
+              console.log('📱 Native mode detected, skipping NTP sync');
+              return {
+                serverTime: Date.now(),
+                t1: Date.now(),
+                t2: Date.now(),
+                t3: Date.now(),
+                stratum: 16 // 表示未同步
+              };
+            }
+            
+            // Web環境：使用相對路徑，透過 setupProxy.js 轉發
+            const res = await fetch(`/api/ntp?t0=${t0}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }).catch(err => {
+              console.warn('⚠️ Fetch failed, trying direct connection:', err);
+              // 如果proxy失敗，嘗試直接連接
+              return fetch(`http://localhost:3005/api/ntp?t0=${t0}`, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              });
+            });
             
             // 檢查回應是否為 JSON
             const contentType = res.headers.get("content-type");
@@ -91,22 +129,48 @@ export const visualNovelMachine = createMachine({
             return res.json();
           } catch (err) {
             console.error('NTP Fetch Error:', err);
-            throw err;
+            // 如果NTP失敗，返回本地時間作為fallback
+            console.warn('⚠️ NTP同步失敗，使用本地時間');
+            return {
+              serverTime: Date.now(),
+              t1: Date.now(),
+              t2: Date.now(),
+              t3: Date.now(),
+              stratum: 16 // 表示未同步
+            };
           }
         }),
         onDone: {
           actions: assign({
             currentText: ({ context, event }) => {
-              const { serverTime } = event.output;
+              const { serverTime, stratum } = event.output;
               const baseText = context.gameCleared 
                 ? '系統重新載入... 偵測到您是尊貴的 VIP 用戶 (二周目)。' 
                 : '系統載入中... 你站在這充滿迷因氣息的停車場入口。';
+              
+              if (stratum === 16) {
+                // 移動端或NTP不可用，使用本地時間
+                const isNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
+                const message = isNative ? '📱 移動端模式' : '使用本地時間';
+                return `${baseText}\n\n✅ 系統就緒 (${message})\n當前時間: ${new Date(serverTime).toLocaleString()}`;
+              }
+              
               return `${baseText}\n\n✅ NTP 同步完成\n伺服器時間: ${new Date(serverTime).toLocaleString()}`;
             },
             logs: ({ context, event }) => {
               const { t1, t2, t3, stratum, serverTime } = event.output;
               const t4 = Date.now();
               const offset = ((t2 - t1) + (t3 - t4)) / 2;
+              
+              if (stratum === 16) {
+                const isNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
+                return [...context.logs, { 
+                  type: isNative ? 'success' : 'warning', 
+                  text: isNative ? `⏰ NTP Sync: Skipped (Native mode)` : `⚠️ NTP Sync Failed: Using local time`, 
+                  timestamp: serverTime 
+                }];
+              }
+              
               return [...context.logs, { 
                 type: 'success', 
                 text: `⏰ NTP Sync: Stratum ${stratum}, Offset ${offset.toFixed(2)}ms`, 
@@ -527,7 +591,23 @@ export const visualNovelMachine = createMachine({
         id: 'sendEmailService',
         src: fromPromise(async ({ input }) => {
           const { email, parkingHours } = input;
-          // 使用相對路徑，透過 proxy 轉發
+          
+          // 檢測運行環境
+          const isNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
+          
+          // 對於移動端，模擬發送成功
+          if (isNative) {
+            console.log('📱 Native mode: Simulating email send');
+            // 模擬網路延遲
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            return {
+              success: true,
+              messageId: 'native-mock-' + Date.now(),
+              simulated: true
+            };
+          }
+          
+          // Web環境：使用相對路徑，透過 proxy 轉發
           const response = await fetch('/api/send-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
