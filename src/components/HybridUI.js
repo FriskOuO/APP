@@ -292,8 +292,31 @@ export const SceneDisplay = ({ background, character, gameState, onTutorialCompl
     }
   }, [gameState]);
 
-  // Determine which image to show based on game state
+  // Determine which image to show based on character prop or game state
   const getSceneImage = () => {
+    // Priority 1: Use character prop if it's set and not default
+    if (character && character !== 'narrator') {
+      const characterMap = {
+        'street-cat': oiiaCatImg,
+        'oiia-cat': oiiaCatImg,
+        'oiia-cat-gif': oiiaCatGif,
+        'spaghetti': spaghettiImg,
+        'spaghetti-eaten': spaghettiEatenImg,
+        'spaghetti_eaten': spaghettiEatenImg,
+        'hand-touching': handTouchingImg,
+        'protagonist': protagonistImg,
+        'mysterious-man': mysteriousImg,
+        'car': carImg,
+        'parking-lot': parkingLotImg,
+        'teach': teachImg
+      };
+      
+      if (characterMap[character]) {
+        return characterMap[character];
+      }
+    }
+
+    // Priority 2: Use gameState
     switch (gameState) {
       case 'DRIVING':
       case 'driving':

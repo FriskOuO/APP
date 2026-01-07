@@ -12,7 +12,13 @@ const BACKGROUND_SOURCES = {
   'blue-screen': require('../assets/bsod.png'),
   'oiia-cat': require('../assets/oiia_cat.png'),
   'protagonist': require('../assets/protagonist.png'),
-  'moving-car': require('../assets/moving_car.png')
+  'moving-car': require('../assets/moving_car.png'),
+  'street-cat': require('../assets/oiia_cat.png'),
+  'spaghetti': require('../assets/spaghetti.png'),
+  'spaghetti-eaten': require('../assets/spaghetti_eaten.png'),
+  'hand-touching': require('../assets/hand_touching.png'),
+  'mysterious-man': require('../assets/mysterious.png'),
+  'static-noise': require('../assets/parking_lot.png')
 };
 
 // --- Loading Component ---
@@ -30,14 +36,33 @@ const LoadingScreen = () => (
   </SafeAreaView>
 );
 
-const VirtualMobile = ({ notification, parkedHours }) => (
-  notification ? (
+const VirtualMobile = ({ notification, parkedHours }) => {
+  const [visible, setVisible] = useState(false);
+  const [currentNotification, setCurrentNotification] = useState(null);
+
+  useEffect(() => {
+    if (notification) {
+      setCurrentNotification(notification);
+      setVisible(true);
+      
+      // Auto-hide after 5 seconds
+      const timer = setTimeout(() => {
+        setVisible(false);
+      }, 5000); // 5 seconds duration
+      
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
+  if (!visible || !currentNotification) return null;
+
+  return (
     <View style={styles.mobileContainer}>
-      <Text style={styles.mobileText}>{notification.title}</Text>
-      <Text style={styles.mobileText}>{notification.message}</Text>
+      <Text style={styles.mobileTitle}>{currentNotification.title}</Text>
+      <Text style={styles.mobileText}>{currentNotification.body || currentNotification.message}</Text>
     </View>
-  ) : null
-);
+  );
+};
 
 // --- Helper Functions ---
 
@@ -597,15 +622,34 @@ const styles = StyleSheet.create({
   },
   mobileContainer: {
     position: 'absolute',
-    top: 50,
-    right: 10,
-    backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 10,
-    width: 200,
+    top: 60,
+    right: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    padding: 15,
+    borderRadius: 12,
+    width: 250,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 200, // Ensure it's on top
+    borderLeftWidth: 5,
+    borderLeftColor: '#22d3ee'
+  },
+  mobileTitle: {
+    color: '#0f172a',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 4
   },
   mobileText: {
-    color: '#000',
+    color: '#334155',
+    fontSize: 14,
+    lineHeight: 20
   },
   qteOverlay: {
     ...StyleSheet.absoluteFillObject,

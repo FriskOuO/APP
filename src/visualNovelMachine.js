@@ -421,7 +421,7 @@ export const visualNovelMachine = createMachine({
     interactCat: {
       entry: assign({
         currentText: '那隻貓咪正在以 3000 RPM 的速度旋轉，發出 "OIIA OIIA" 的聲音。',
-        characterImage: 'oiia-cat', 
+        backgroundImage: 'street-cat',
         logs: ({ context }) => [...context.logs, { type: 'narrative', text: '🐱 遭遇迷因貓', timestamp: new Date().toISOString() }]
       }),
       on: {
@@ -448,7 +448,7 @@ export const visualNovelMachine = createMachine({
         currentText: ({ context }) => context.hasSpaghetti 
             ? '義大利麵已經被你拿走了，這裡只剩盤子的殘影。' 
             : '一坨熱騰騰的義大利麵漂浮在半空中，看起來很不科學。',
-        characterImage: ({ context }) => context.hasSpaghetti ? 'spaghetti_eaten' : 'spaghetti',
+        backgroundImage: ({ context }) => context.hasSpaghetti ? 'spaghetti-eaten' : 'spaghetti',
         logs: ({ context }) => [...context.logs, { type: 'narrative', text: '🍝 發現義大利麵', timestamp: new Date().toISOString() }]
       }),
       on: {
@@ -475,6 +475,7 @@ export const visualNovelMachine = createMachine({
     interactExit: {
       entry: assign({
         currentText: ({ context }) => `前方是一道空氣牆。開發者好像還沒做這裡的地圖。(撞擊次數: ${context.wallHitCount})`,
+        backgroundImage: 'hand-touching',
         logs: ({ context }) => [...context.logs, { type: 'narrative', text: '🧱 到達地圖邊界', timestamp: new Date().toISOString() }]
       }),
       on: {
@@ -505,7 +506,7 @@ export const visualNovelMachine = createMachine({
     endingBlackHole: {
       entry: assign({
         currentText: '【結局：奇異點】你伸手摸了貓咪。貓咪瞬間加速到光速旋轉，發出震耳欲聾的 "OIIA OIIA" 聲！空間開始扭曲，一個巨大的「迷因黑洞」將你吞噬。當你回過神來，已經過了 2 個小時，周圍的景物全部消失，只剩下虛空...',
-        backgroundImage: 'static-noise',
+        backgroundImage: 'oiia-cat',
         parkingHours: 2,
         logs: ({ context }) => [...context.logs, { type: 'fail', text: '🌌 警告：時空連續性破裂 (+2h)', timestamp: new Date().toISOString() }]
       }),
