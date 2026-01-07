@@ -10,15 +10,18 @@ const BACKGROUND_SOURCES = {
   'teach': require('../assets/teach.png'),
   'car-interior': require('../assets/car.png'),
   'blue-screen': require('../assets/bsod.png'),
-  'oiia-cat': require('../assets/oiia_cat.png'),
+  'oiia-cat': require('../assets/oiia-cat.gif'),
   'protagonist': require('../assets/protagonist.png'),
   'moving-car': require('../assets/moving_car.png'),
   'street-cat': require('../assets/oiia_cat.png'),
   'spaghetti': require('../assets/spaghetti.png'),
   'spaghetti-eaten': require('../assets/spaghetti_eaten.png'),
+  'spaghetti-dance': require('../assets/spaghetti.png'),
   'hand-touching': require('../assets/hand_touching.png'),
   'mysterious-man': require('../assets/mysterious.png'),
-  'static-noise': require('../assets/parking_lot.png')
+  'static-noise': require('../assets/parking_lot.png'),
+  'railing-closed': require('../assets/railing.png'),
+  'railing-opening': require('../assets/railing_opening.png')
 };
 
 // --- Loading Component ---
@@ -238,6 +241,22 @@ const App = () => {
       send({ type: 'QTE_SUCCESS' });
     }
   }, [currentState, context.qteProgress, context.qteSequence.length, send]);
+
+  // Play OIIA sound effect when entering endingBlackHole state
+  useEffect(() => {
+    if (currentState === 'endingBlackHole') {
+      // Note: React Native doesn't have built-in audio support
+      // You'll need to install expo-av or react-native-sound
+      // For now, this is a placeholder
+      console.log('Playing OIIA sound for 7 seconds');
+      
+      const timer = setTimeout(() => {
+        console.log('Sound finished');
+      }, 7000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [currentState]);
 
   const handleQTEPress = (key) => {
     if (currentState === 'qteSequence') {
@@ -519,9 +538,7 @@ const styles = StyleSheet.create({
   },
   charEmoji: { 
     fontSize: 60,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 10,
+    textShadow: '0px 2px 10px rgba(0, 0, 0, 0.75)',
   },
   charText: { color: '#fff' },
   dialogueBox: {
@@ -628,13 +645,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 12,
     width: 250,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    boxShadow: '0px 2px 3.84px rgba(0, 0, 0, 0.25)',
     elevation: 5,
     zIndex: 200, // Ensure it's on top
     borderLeftWidth: 5,

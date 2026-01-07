@@ -220,36 +220,6 @@ export const SceneDisplay = ({ background, character, gameState, onTutorialCompl
     }
   }, [gameState]);
 
-  // Audio Effect for Black Hole Ending
-  useEffect(() => {
-    if (gameState === 'endingBlackhole') {
-      const audio = new Audio(oiiaSoundFile);
-      audio.volume = 1.0;
-      audio.loop = true; 
-      audio.play().catch(e => console.error("Audio play failed", e));
-
-      const fadeDuration = 7000; // 7 seconds
-      const fadeSteps = 50; // Update every 50ms
-      const volumeStep = 1.0 / (fadeDuration / fadeSteps);
-
-      const fadeInterval = setInterval(() => {
-        if (audio.volume > volumeStep) {
-          audio.volume = Math.max(0, audio.volume - volumeStep);
-        } else {
-          audio.volume = 0;
-          clearInterval(fadeInterval);
-          audio.pause();
-        }
-      }, fadeSteps);
-
-      return () => {
-        clearInterval(fadeInterval);
-        audio.pause();
-        audio.currentTime = 0;
-      };
-    }
-  }, [gameState]);
-
   // Video Volume Control for Spaghetti Dance
   useEffect(() => {
     if (gameState === 'endingSpaghettiDance' && spaghettiVideoRef.current) {
@@ -276,25 +246,61 @@ export const SceneDisplay = ({ background, character, gameState, onTutorialCompl
   useEffect(() => {
     if (gameState === 'endingBlackHole') {
       const audio = new Audio(oiiaSoundFile);
-      audio.volume = 0.5;
-      audio.currentTime = 0; // Start at 0s
-      audio.play().catch(e => console.error("Audio play failed", e));
+      audio.volume = 1.0; // Full volume
+      audio.currentTime = 0;
+      
+      // Play audio
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => console.log('OIIA sound started playing'))
+          .catch(e => console.error("Audio play failed", e));
+      }
 
-      // Stop after 6 seconds (playing from 0s to 6s)
+      // Stop after 7 seconds
       const timer = setTimeout(() => {
         audio.pause();
-      }, 6000);
+        audio.currentTime = 0;
+        console.log('OIIA sound stopped after 7 seconds');
+      }, 7000);
 
       return () => {
-        audio.pause();
         clearTimeout(timer);
+        audio.pause();
+        audio.currentTime = 0;
       };
     }
   }, [gameState]);
 
   // Determine which image to show based on character prop or game state
   const getSceneImage = () => {
-    // Priority 1: Use character prop if it's set and not default
+    // Priority 1: Use background prop if it's set (most specific)
+    if (background && background !== 'narrator') {
+      const backgroundMap = {
+        'parking-lot': parkingLotImg,
+        'teach': teachImg,
+        'car-interior': carImg,
+        'blue-screen': bsodImg,
+        'oiia-cat': oiiaCatGif,
+        'protagonist': protagonistImg,
+        'moving-car': movingCarImg,
+        'street-cat': oiiaCatImg,
+        'spaghetti': spaghettiImg,
+        'spaghetti-eaten': spaghettiEatenImg,
+        'spaghetti-dance': spaghettiImg,
+        'hand-touching': handTouchingImg,
+        'mysterious-man': mysteriousImg,
+        'static-noise': parkingLotImg,
+        'railing-closed': railingClosedImg,
+        'railing-opening': railingOpenImg
+      };
+      
+      if (backgroundMap[background]) {
+        return backgroundMap[background];
+      }
+    }
+
+    // Priority 2: Use character prop if it's set
     if (character && character !== 'narrator') {
       const characterMap = {
         'street-cat': oiiaCatImg,
@@ -316,7 +322,7 @@ export const SceneDisplay = ({ background, character, gameState, onTutorialCompl
       }
     }
 
-    // Priority 2: Use gameState
+    // Priority 3: Use gameState
     switch (gameState) {
       case 'DRIVING':
       case 'driving':
@@ -442,8 +448,12 @@ export const SceneDisplay = ({ background, character, gameState, onTutorialCompl
         {gameState === 'endingSpaghettiDance' ? (
           <video 
             ref={spaghettiVideoRef}
-            src={spaghettiVideo} 
-            autoPlay 
+            src={spaghettiVideo}
+            autoPlay
+            muted={false}
+            playsInline
+            onError={(e) => console.error('Video error:', e)}
+            onLoadedData={() => console.log('Video loaded successfully')}
             onTimeUpdate={(e) => {
               if (e.target.currentTime >= 29) {
                 e.target.pause();

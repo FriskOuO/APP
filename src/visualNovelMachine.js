@@ -84,9 +84,9 @@ export const visualNovelMachine = createMachine({
             // 檢測運行環境：React Native vs Web
             const isNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
             
-            // 對於移動端，直接跳過NTP同步（使用本地時間）
-            if (isNative) {
-              console.log('📱 Native mode detected, skipping NTP sync');
+            // 對於移動端和開發環境，直接跳過NTP同步（使用本地時間）
+            if (isNative || process.env.NODE_ENV === 'development') {
+              console.log('⏰ Using local time (NTP sync disabled in development)');
               return {
                 serverTime: Date.now(),
                 t1: Date.now(),
@@ -320,6 +320,7 @@ export const visualNovelMachine = createMachine({
           ? '車子自動導航中... 物理引擎正在運作 (VIP)。' 
           : '駕駛模式啟動！注意前方路況，保持專注。',
         backgroundImage: 'moving-car',
+        characterImage: null,
         distance: 500,
         logs: ({ context }) => [...context.logs, { type: 'mqtt', text: '📡 Moving to Gate...', timestamp: new Date().toISOString() }]
       }),
@@ -369,6 +370,8 @@ export const visualNovelMachine = createMachine({
     atGate: {
       entry: assign({
         currentText: '到達閘門。感測器正在讀取你的靈魂。',
+        backgroundImage: 'railing-closed',
+        characterImage: null,
         distance: 0,
         logs: ({ context }) => [...context.logs, { type: 'system', text: '🔍 Scanning...', timestamp: new Date().toISOString() }]
       }),
@@ -391,6 +394,8 @@ export const visualNovelMachine = createMachine({
     gateOpening: {
       entry: assign({
         currentText: '閘門開啟，歡迎來到迷因停車場。',
+        backgroundImage: 'railing-opening',
+        characterImage: null,
         logs: ({ context }) => [...context.logs, { type: 'coap', text: '📦 Gate Open', timestamp: new Date().toISOString() }]
       }),
       after: {
@@ -528,18 +533,21 @@ export const visualNovelMachine = createMachine({
     endingSpaghettiDance: {
       entry: assign({
         currentText: '【結局：舞力全開】你吞下了那坨飄浮的麵。那不是麵，是「節奏」！你的四肢開始不受控制，在這裡跳起了長達 1 小時的機械舞。你的身體很累，但靈魂在燃燒！',
-        characterImage: 'protagonist',
+        backgroundImage: 'spaghetti-dance',
         parkingHours: 1,
         logs: ({ context }) => [...context.logs, { type: 'success', text: '💃 狀態異常：強制熱舞 (+1h)', timestamp: new Date().toISOString() }]
       }),
-      on: { NEXT: 'paymentNarrative' }
+      on: { 
+        VIDEO_COMPLETE: 'paymentNarrative',
+        NEXT: 'paymentNarrative'
+      }
     },
 
     // 4. 管理員 (+3h)
     endingAdmin: {
       entry: assign({
         currentText: '【結局：管理員介入】牆壁碎裂了。一個全身發光的神秘人把你抓到了虛擬空間的「小黑屋」。他對你進行了長達 3 小時關於「不要亂撞空氣牆」的說教。',
-        characterImage: 'mysterious-man', 
+        backgroundImage: 'mysterious-man',
         parkingHours: 3,
         logs: ({ context }) => [...context.logs, { type: 'fail', text: '👮 管理員：封鎖行動 (+3h)', timestamp: new Date().toISOString() }]
       }),
@@ -616,6 +624,9 @@ export const visualNovelMachine = createMachine({
           }
           
           // Web環境：使用相對路徑，透過 proxy 轉發
+          console.log('📧 Sending email to:', email);
+          console.log('💰 Parking hours:', parkingHours);
+          
           const response = await fetch('/api/send-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -636,10 +647,18 @@ export const visualNovelMachine = createMachine({
               `
             })
           });
+          
+          console.log('📬 Response status:', response.status);
+          
           if (!response.ok) {
-            throw new Error('Network response was not ok');
+            const errorText = await response.text();
+            console.error('❌ Email send failed:', errorText);
+            throw new Error(`Server error: ${response.status}`);
           }
-          return response.json();
+          
+          const result = await response.json();
+          console.log('✅ Email sent successfully!', result);
+          return result;
         }),
         input: ({ context }) => ({ email: context.email, parkingHours: context.parkingHours }),
         onDone: {
