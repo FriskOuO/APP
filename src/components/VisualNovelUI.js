@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { getArrowSymbol } from '../visualNovelMachine';
 import './VisualNovel.css';
+import parkingLotImg from '../../assets/parking_lot.png';
+import teachImg from '../../assets/teach.png';
+import carImg from '../../assets/car.png';
+import bsodImg from '../../assets/bsod.png';
+import oiiaCatImg from '../../assets/oiia_cat.png';
 
 /**
  * Visual Novel Dialogue Box Component
@@ -75,16 +80,31 @@ const DialogueBox = ({
 const SceneDisplay = ({ background, character }) => {
   const backgroundClass = `scene-display scene-${background}`;
 
-  // Handle public assets explicitly
+  // Handle assets explicitly
   const style = {};
   if (background === 'teach') {
     // Use absolute path for assets
-    style.backgroundImage = `url(/assets/teach.png)`;
+    style.backgroundImage = `url(${teachImg})`;
     style.backgroundSize = 'cover';
     style.backgroundPosition = 'center';
     style.backgroundRepeat = 'no-repeat';
   } else if (background === 'parking-lot') {
-    style.backgroundImage = `url(/assets/parking_lot.png)`;
+    style.backgroundImage = `url(${parkingLotImg})`;
+    style.backgroundSize = 'cover';
+    style.backgroundPosition = 'center';
+    style.backgroundRepeat = 'no-repeat';
+  } else if (background === 'car-interior') {
+    style.backgroundImage = `url(${carImg})`;
+    style.backgroundSize = 'cover';
+    style.backgroundPosition = 'center';
+    style.backgroundRepeat = 'no-repeat';
+  } else if (background === 'blue-screen') {
+    style.backgroundImage = `url(${bsodImg})`;
+    style.backgroundSize = 'cover';
+    style.backgroundPosition = 'center';
+    style.backgroundRepeat = 'no-repeat';
+  } else if (background === 'oiia-cat') {
+    style.backgroundImage = `url(${oiiaCatImg})`;
     style.backgroundSize = 'cover';
     style.backgroundPosition = 'center';
     style.backgroundRepeat = 'no-repeat';

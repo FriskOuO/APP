@@ -52,7 +52,7 @@ export const visualNovelMachine = createMachine({
         currentText: ({ context }) => context.gameCleared 
           ? '系統重新載入... 偵測到您是尊貴的 VIP 用戶 (二周目)。\n正在連接 NTP 伺服器校時...' 
           : '系統載入中... 你站在這充滿迷因氣息的停車場入口。\n正在連接 NTP 伺服器校時...',
-        backgroundImage: 'parking-lot',
+        backgroundImage: 'protagonist',
         // 重置單局變數，但保留 gameCleared
         distance: 500,
         hasSpaghetti: false,
@@ -316,7 +316,10 @@ export const visualNovelMachine = createMachine({
     // --- 駕駛過程 ---
     driving: {
       entry: assign({
-        currentText: '車子自動導航中... 物理引擎正在運作。',
+        currentText: ({ context }) => context.isAutoPilot 
+          ? '車子自動導航中... 物理引擎正在運作 (VIP)。' 
+          : '駕駛模式啟動！注意前方路況，保持專注。',
+        backgroundImage: 'moving-car',
         distance: 500,
         logs: ({ context }) => [...context.logs, { type: 'mqtt', text: '📡 Moving to Gate...', timestamp: new Date().toISOString() }]
       }),
@@ -324,7 +327,11 @@ export const visualNovelMachine = createMachine({
         id: 'distanceSimulation', 
         input: ({ context }) => ({ isAutoPilot: context.isAutoPilot }),
         src: fromCallback(({ input, sendBack }) => {
-          if (!input.isAutoPilot) return; // 手動模式：不執行自動扣減，等待外部事件
+          // 檢測運行環境：React Native 沒接手動駕駛介面，強制自動跑
+          const isNative = typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
+          
+          // 如果是手動模式且非Native，不執行自動扣減，等待外部事件
+          if (!input.isAutoPilot && !isNative) return; 
 
           let currentDistance = 500;
           const interval = setInterval(() => {

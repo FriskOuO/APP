@@ -1,9 +1,19 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, StatusBar, Dimensions, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, StatusBar, Dimensions, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { useMachine } from '@xstate/react';
 import { visualNovelMachine } from './visualNovelMachine';
 
 import CyberpunkDashboard from './components/CyberpunkDashboardNative';
+
+const BACKGROUND_SOURCES = {
+  'parking-lot': require('../assets/parking_lot.png'),
+  'teach': require('../assets/teach.png'),
+  'car-interior': require('../assets/car.png'),
+  'blue-screen': require('../assets/bsod.png'),
+  'oiia-cat': require('../assets/oiia_cat.png'),
+  'protagonist': require('../assets/protagonist.png'),
+  'moving-car': require('../assets/moving_car.png')
+};
 
 // --- Loading Component ---
 const LoadingScreen = () => (
@@ -145,12 +155,13 @@ const TypewriterText = ({ text, context, onComplete, forceShowFull, isDrivingAct
   );
 };
 
-export default function App() {
+const App = () => {
   const [state, send] = useMachine(visualNovelMachine);
   const [typingComplete, setTypingComplete] = useState(false);
   const [drivingDistance, setDrivingDistance] = useState(500);
   const [prevText, setPrevText] = useState('');
   const [forceShowFull, setForceShowFull] = useState(false);
+  const [email, setEmail] = useState(''); // Email State
 
   const currentState = state.value;
   const context = state.context;
@@ -275,50 +286,44 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
+      >
       
       {/* Main Game Area */}
       <View style={styles.gameArea}>
         <View style={styles.screen}>
            {/* Background Image */}
            <View style={styles.backgroundPlaceholder}>
-              {/* 停車場背景 */}
-              {context.backgroundImage === 'parking-lot' && (
-                <Image 
-                  source={require('../assets/parking_lot.png')}
-                  style={styles.backgroundImage}
-                  resizeMode="cover"
-                />
-              )}
-              {/* 教室背景 */}
-              {context.backgroundImage === 'teach' && (
-                <Image 
-                  source={require('../assets/teach.png')}
-                  style={styles.backgroundImage}
-                  resizeMode="cover"
-                />
-              )}
-              {/* 車內背景（使用car.png） */}
-              {context.backgroundImage === 'car-interior' && (
-                <Image 
-                  source={require('../assets/car.png')}
-                  style={styles.backgroundImage}
-                  resizeMode="cover"
-                />
-              )}
-              {/* 其他場景顯示圖示和名稱 */}
-              {!['parking-lot', 'teach', 'car-interior'].includes(context.backgroundImage) && (
-                <>
-                  <Text style={styles.sceneIcon}>
-                    {context.backgroundImage === 'gate' && '🚧'}
-                    {context.backgroundImage === 'static-noise' && '📺'}
-                    {context.backgroundImage === 'oiia-cat' && '🐱'}
-                    {context.backgroundImage === 'blue-screen' && '💙'}
-                  </Text>
-                  <Text style={styles.sceneName}>{context.backgroundImage}</Text>
-                </>
-              )}
+              {(() => {
+                const backgroundSource = BACKGROUND_SOURCES[context.backgroundImage];
+
+                if (backgroundSource) {
+                  return (
+                    <Image
+                      key={context.backgroundImage}
+                      source={backgroundSource}
+                      style={styles.backgroundImage}
+                      resizeMode={context.backgroundImage === 'blue-screen' ? 'stretch' : 'cover'}
+                    />
+                  );
+                }
+
+                return (
+                  <>
+                    <Text style={styles.sceneIcon}>
+                      {context.backgroundImage === 'gate' && '[GATE]'}
+                      {context.backgroundImage === 'static-noise' && '[NOISE]'}
+                      {context.backgroundImage === 'oiia-cat' && '[CAT]'}
+                      {context.backgroundImage === 'blue-screen' && '[BSOD]'}
+                    </Text>
+                    <Text style={styles.sceneName}>{context.backgroundImage}</Text>
+                  </>
+                );
+              })()}
            </View>
-           
+
            {/* Character Sprite - Hidden */}
            {/* <View style={styles.characterPlaceholder}>
               <Text style={styles.charEmoji}>
@@ -395,14 +400,49 @@ export default function App() {
       {/* Virtual Mobile */}
       <VirtualMobile notification={context.notification} parkedHours={context.parkedHours} />
 
+      {/* Payment Input Overlay */}
+      {currentState === 'paymentInput' && (
+        <View style={styles.emailContainer}>
+          <Text style={styles.emailLabel}>📧 輸入您的電子信箱以接收帳單</Text>
+          <TextInput
+            style={styles.emailInput}
+            placeholder="請輸入 Email..."
+            placeholderTextColor="#666"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          <TouchableOpacity 
+            style={[styles.submitBtn, { opacity: email ? 1 : 0.5 }]} 
+            disabled={!email}
+            onPress={() => send({ type: 'SUBMIT_EMAIL', email })}
+          >
+            <Text style={styles.submitText}>確認傳送</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.cancelBtn} 
+            onPress={() => send({ type: 'BACK' })}
+          >
+            <Text style={styles.cancelText}>返回</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
+
+export default App; // Fix export declaration
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#111',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   gameArea: {
     flex: 2,
@@ -421,6 +461,8 @@ const styles = StyleSheet.create({
   backgroundPlaceholder: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
+    width: '100%',
+    height: '100%',
     backgroundColor: '#1a1a2e',
     justifyContent: 'center',
     alignItems: 'center',
@@ -430,6 +472,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     height: '100%',
+    top: 0,
+    left: 0,
   },
   sceneIcon: {
     fontSize: 80,
@@ -501,6 +545,55 @@ const styles = StyleSheet.create({
   dashboardText: {
     color: '#0f0',
     fontFamily: 'monospace',
+  },
+  emailContainer: {
+    padding: 20,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    position: 'absolute',
+    top: '30%',
+    left: '10%',
+    right: '10%',
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#0ff',
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  emailLabel: {
+    color: '#0ff',
+    fontSize: 18,
+    marginBottom: 10,
+    fontWeight: 'bold',
+  },
+  emailInput: {
+    backgroundColor: '#222',
+    color: '#fff',
+    width: '100%',
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#555',
+    marginBottom: 20,
+    fontSize: 16,
+  },
+  cancelBtn: {
+    padding: 10,
+    marginTop: 10,
+  },
+  cancelText: {
+    color: '#888',
+    textDecorationLine: 'underline',
+  },
+  submitBtn: {
+    backgroundColor: '#06b6d4',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 5,
+  },
+  submitText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   mobileContainer: {
     position: 'absolute',

@@ -2,24 +2,23 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from '@xstate/react';
 import '../components/VisualNovel.css';
 import { getArrowSymbol } from '../gameMachine';
-
-// Images are loaded from public/assets/
-const carImg = "/assets/car.png";
-const movingCarImg = "/assets/moving_car.png";
-const parkingLotImg = "/assets/parking_lot.png"; // New Asset
-const oiiaCatImg = "/assets/oiia_cat.png";
-const spaghettiImg = "/assets/spaghetti.png";
-const spaghettiEatenImg = "/assets/spaghetti_eaten.png";
-const handTouchingImg = "/assets/hand_touching.png";
-const mysteriousImg = "/assets/mysterious.png"; // Verified as .png
-const oiiaCatGif = "/assets/oiia-cat.gif";
-const oiiaSoundFile = "/assets/OIIAOIIA_CAT_SOUND.mp3";
-const spaghettiVideo = "/assets/SPAGHETTI_DANCE.mp4";
-const spaghettiOiiaSound = "/assets/SPAGETTI_OIIA.mp3";
-const railingClosedImg = "/assets/railing.png";
-const railingOpenImg = "/assets/railing_opening.png";
-const teachImg = "/assets/teach.png";
-const bsodImg = "/assets/bsod.png";
+import bsodImg from '../../assets/bsod.png';
+import carImg from '../../assets/car.png';
+import handTouchingImg from '../../assets/hand_touching.png';
+import movingCarImg from '../../assets/moving_car.png';
+import mysteriousImg from '../../assets/mysterious.png';
+import oiiaCatGif from '../../assets/oiia-cat.gif';
+import oiiaCatImg from '../../assets/oiia_cat.png';
+import oiiaSoundFile from '../../assets/OIIAOIIA_CAT_SOUND.mp3';
+import parkingLotImg from '../../assets/parking_lot.png';
+import protagonistImg from '../../assets/protagonist.png';
+import railingClosedImg from '../../assets/railing.png';
+import railingOpenImg from '../../assets/railing_opening.png';
+import spaghettiEatenImg from '../../assets/spaghetti_eaten.png';
+import spaghettiImg from '../../assets/spaghetti.png';
+import spaghettiOiiaSound from '../../assets/SPAGETTI_OIIA.mp3';
+import spaghettiVideo from '../../assets/SPAGHETTI_DANCE.mp4';
+import teachImg from '../../assets/teach.png';
 
 /**
  * Live Variable Renderer
@@ -133,7 +132,7 @@ export const RetroDialogueBox = ({ text, characterName, actor, onComplete, chara
         <div className="character-portrait-placeholder" style={{ opacity: characterImage === 'protagonist' ? 1 : 0.3 }}>
           {characterImage === 'protagonist' ? (
             <img 
-              src="/assets/protagonist.png" 
+              src={protagonistImg} 
               alt="Protagonist" 
               style={{ width: '100%', height: '100%', objectFit: 'cover', imageRendering: 'pixelated' }} 
             />
@@ -201,7 +200,7 @@ export const SceneDisplay = ({ background, character, gameState, onTutorialCompl
         const r = Math.random();
         let src = oiiaCatGif;
         if (r > 0.66) src = spaghettiImg;
-        else if (r > 0.33) src = "/assets/protagonist.png";
+        else if (r > 0.33) src = protagonistImg;
 
         return {
           id: i,
@@ -372,7 +371,7 @@ export const SceneDisplay = ({ background, character, gameState, onTutorialCompl
       case 'intro2':
       case 'intro3':
       default:
-        return "/assets/protagonist.png"; // Default mask/protagonist
+        return protagonistImg; // Default mask/protagonist
     }
   };
 
@@ -387,6 +386,7 @@ export const SceneDisplay = ({ background, character, gameState, onTutorialCompl
     if (gameState === 'endingRemix') return "spin-implode"; // Main center image spins too
     if (gameState === 'endingC') return "spin-implode"; // Chaos ending
     if (gameState === 'endingB') return "glitch-shake"; // Backrooms ending
+    if (gameState === 'endingBSOD') return "glitch-shake"; // BSOD ending
     return "scene-floating-effect";
   };
 
@@ -444,8 +444,8 @@ export const SceneDisplay = ({ background, character, gameState, onTutorialCompl
               style={{ 
                 width: '100%', 
                 height: '100%', 
-                objectFit: 'contain',
-                maxWidth: '800px',
+                objectFit: gameState === 'endingBSOD' ? 'fill' : 'contain',
+                maxWidth: gameState === 'endingBSOD' ? 'none' : '800px',
                 zIndex: 1
               }}
             />
