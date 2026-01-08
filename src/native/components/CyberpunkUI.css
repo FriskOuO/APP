@@ -190,6 +190,7 @@ body {
   line-height: 1.5 !important;
   margin-bottom: 20px;
   overflow-y: auto;
+  min-height: 0; /* Classic flexbox fix for scrollable content */
 }
 
 .dialogue-text * {

@@ -1,18 +1,17 @@
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { useMachine } from '@xstate/react';
-import './components/CyberpunkUI.css'; // New Cyberpunk Styles
-import './components/StoryMode.css'; // Story Mode Styles
-import { visualNovelMachine } from './visualNovelMachine';
-import { SceneDisplay } from './components/HybridUI'; // Reuse SceneDisplay for now
-import CyberpunkDashboard from './components/CyberpunkDashboard';
-import VirtualMobile from './components/VirtualMobile';
-import ManualDrivingConsole from './components/ManualDrivingConsole';
-import { useDrivingMechanic } from './hooks/useDrivingMechanic';
+import '../native/components/CyberpunkUI.css'; // New Cyberpunk Styles
+import '../native/components/StoryMode.css'; // Story Mode Styles
+import { visualNovelMachine } from '../native/visualNovelMachine';
+import { SceneDisplay } from './components/HybridUI'; // Web-specific version
+import CyberpunkDashboard from '../native/components/CyberpunkDashboard';
+import VirtualMobile from '../native/components/VirtualMobile';
+import ManualDrivingConsole from '../native/components/ManualDrivingConsole';
+import { useDrivingMechanic } from '../native/hooks/useDrivingMechanic';
 
 // --- Helper Functions ---
 
-const getSpeakerColor = (speaker) => {
-  if (speaker.includes('系統')) return '#4ade80'; // green-400
+const getSpeakerColor = (speaker) => {  if (speaker.includes('系統')) return '#4ade80'; // green-400
   if (speaker.includes('車載智能')) return '#22d3ee'; // cyan-400
   if (speaker.includes('主角')) return '#facc15'; // yellow-400
   if (speaker.includes('神秘人') || speaker.includes('未知聲音')) return '#c084fc'; // purple-400
@@ -177,7 +176,11 @@ const genericBtnStyle = (color) => ({
 });
 
 function App() {
+  console.log('🚀 [App.js] Component mounting/rendering');
+  
   const [state, send, actor] = useMachine(visualNovelMachine);
+  console.log('🔧 [App.js] State machine initialized:', state ? 'SUCCESS' : 'FAILED');
+  
   const [typingComplete, setTypingComplete] = useState(false);
   const [areOptionsVisible, setAreOptionsVisible] = useState(false); // New Cinematic State
   const [showIgnitionUI, setShowIgnitionUI] = useState(false); // Specific state for Ignition Phase B
@@ -196,6 +199,14 @@ function App() {
 
   const currentState = state.value;
   const context = state.context;
+
+  console.log('🎮 [App.js] Current State:', currentState);
+  console.log('📦 [App.js] Context:', {
+    backgroundImage: context?.backgroundImage,
+    characterImage: context?.characterImage,
+    currentText: context?.currentText?.substring(0, 50) + '...',
+    distance: context?.distance
+  });
 
   // IMMEDIATE STATE RESET PATTERN
   // Detects text change during render to prevent "flash of completed text"
@@ -429,6 +440,11 @@ function App() {
       <div className="play-area">
         {/* Top: Visuals */}
         <div className="scene-viewport">
+          {console.log('🎥 [App.js] Rendering SceneDisplay with props:', {
+            background: context.backgroundImage,
+            character: context.characterImage,
+            gameState: currentState
+          })}
           <SceneDisplay 
             background={context.backgroundImage}
             character={context.characterImage}

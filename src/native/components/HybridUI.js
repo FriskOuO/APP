@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from '@xstate/react';
 import '../components/VisualNovel.css';
-import { getArrowSymbol } from '../gameMachine';
+import { getArrowSymbol } from '../../gameMachine';
 import bsodImg from '../../assets/bsod.png';
 import carImg from '../../assets/car.png';
 import handTouchingImg from '../../assets/hand_touching.png';

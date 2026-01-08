@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useMachine } from '@xstate/react';
-import { qteGameMachine, getArrowSymbol } from '../qteGameMachine';
+import { qteGameMachine, getArrowSymbol } from '../../qteGameMachine';
 import { useKeyboardSequence } from '../hooks/useKeyboardSequence';
 import QTEOverlay from './QTEOverlay';
 
